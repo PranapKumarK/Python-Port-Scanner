@@ -1,0 +1,66 @@
+
+#!/usr/bin/env python3
+
+import socket
+import ipaddress
+import re
+
+# Regular expression to extract port range
+port_range_pattern = re.compile("([0-9]+)-([0-9]+)")
+
+port_min = 0
+port_max = 65535
+
+open_ports = []
+
+# Ask user to enter IP address
+while True:
+    ip_add_entered = input("\nPlease enter the IP address that you want to scan: ")
+
+    try:
+        ip_address_obj = ipaddress.ip_address(ip_add_entered)
+        print("You entered a valid IP address.")
+        break
+
+    except:
+        print("You entered an invalid IP address.")
+
+# Ask user to enter port range
+while True:
+    print("Please enter the range of ports in format: <lowest>-<highest> (e.g. 20-100)")
+    port_range = input("Enter port range: ")
+
+    port_range_valid = port_range_pattern.fullmatch(port_range.replace(" ", ""))
+
+    if port_range_valid:
+        port_min = int(port_range_valid.group(1))
+        port_max = int(port_range_valid.group(2))
+
+        if 1 <= port_min <= port_max <= 65535:
+            break
+        else:
+            print("Invalid port range. Enter ports between 1 and 65535.")
+
+    else:
+        print("Invalid format. Please enter a range like 20-100.")
+
+# Basic socket port scanning
+for port in range(port_min, port_max + 1):
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+
+            s.settimeout(0.5)
+
+            s.connect((ip_add_entered, port))
+
+            open_ports.append(port)
+
+    except:
+        pass
+
+# Display open ports
+for port in open_ports:
+    print(f"Port {port} is open on {ip_add_entered}.")
+
+print("\nPort scanning completed.")
